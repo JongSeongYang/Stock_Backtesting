@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+    h1 { text-align: center;
+    padding: 16px 24px;
+    margin: 0;
+    font-size: 30px;
+    border-bottom: 1px solid #eaeaea;
+    }
+    .w-btn {
+    position: relative;
+    border: none;
+    display: inline-block;
+    padding: 15px 30px;
+    border-radius: 15px;
+    font-family: "paybooc-Light", sans-serif;
+    font-size: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.25s;
+    }
+    .w-btn2 {
+    position: relative;
+    border: none;
+    display: inline-block;
+    padding: 10px 30px;
+    border-radius: 15px;
+    font-family: "paybooc-Light", sans-serif;
+    font-size: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.25s;
+    float : right;
+    }
+    .w-btn-indigo {
+    background-color: aliceblue;
+    color: #1e6b7b;
+    }
+    .w-btn:hover {
+        background-color: skyblue;
+    }
+    .w-btn2:hover {
+        background-color: skyblue;
+    }
+    .container {
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    padding: 32px 0;
+    }
+    .input-container {
+    width: 80%;
+    display: flex;
+    align-self: center;
+    justify-content: space-between;
+    }
+    #input {
+    width: 70%;
+    height : 20%;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #eaeaea;
+    }
+    .list-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 48px;
+    width: 80%;
+    align-self: center;
+    border-radius: 4px;
+    border: 1px solid #eaeaea;
+    background-color: white;
+    }
+    #list {
+    margin: 32px 0;
+    }
+    .list-item {
+    border-bottom: 1px solid #eaeaea;
+    margin-right: 32px;
+    padding: 16px 0;
+    font-size: 17px;
+    height: 30px
+    }
+    </style>
+    <title>한국투자증권</title>
+</head>
+    <body>
+        <div class="container" >
+            <div class="list-container" >
+                <h1 > Elon Musk와 Twitter </h1>
+                    <button class="w-btn w-btn-indigo" type="button" onclick="location.href='/twitter'" >Go</button>
+<!--                <li>-->
+<!--                    <a href="/twitter">-->
+<!--                        twitter 비교-->
+<!--                    </a>-->
+<!--                </li>-->
+                <br>
+                <h1> 국내 주식 목록 </h1>
+                {% if stock_list %}
+                    <ul id="list">
+                        {% for stock in stock_list %}
+                           <li class="list-item" >
+                               [{{stock.code}}] {{stock.name}}
+                               <button class="w-btn2 w-btn-indigo" type="button" onclick="location.href='/{{stock.code}}/?name={{stock.name}}'" >Check</button>
+                           </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>
+                        질문이 없습니다.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </body>
+</html>

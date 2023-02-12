@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+    #chartdiv2 {
+    width: 100%;
+    height: 500px;
+    }
+    #chartdiv {
+    width: 100%;
+    height: 500px;
+    max-width: 100%
+    }
+    .w-btn {
+    position: relative;
+    border: none;
+    display: inline-block;
+    padding: 15px 30px;
+    border-radius: 15px;
+    font-family: "paybooc-Light", sans-serif;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.25s;
+    }
+    .w-btn-indigo {
+    background-color: aliceblue;
+    color: #1e6b7b;
+    }
+    .w-btn:hover {
+        background-color: skyblue;
+    }
+    </style>
+</head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+<div style="width:100%;">
+    <button class="w-btn w-btn-indigo" type="button" onclick="location.href='/'" >Home</button>
+    <h1>  Tesla 주가</h1>
+    <div id="chartdiv"></div>
+    <br>
+    <h1>  일론 머스크 Twitter 게시물 수와 Tesla 변동성</h1>
+    <div id="chartdiv2"></div>
+</div>
+
+<script>
+
+am5.ready(function() {
+
+var root = am5.Root.new("chartdiv");
+root.setThemes([am5themes_Animated.new(root)]);
+
+function generateChartData() {
+  var chartData = [];
+  var firstDate = new Date();
+  firstDate.setDate(firstDate.getDate()-50);
+  firstDate.setHours(0, 0, 0, 0);
+  var value = 1200;
+  var dateLabel = {{date_list_str | safe}}
+  var highPrices = {{high_price}}
+  var lowPrices = {{low_price}}
+  var openPrices = {{open_price}}
+  for (var i = 0; i < 50; i++) {
+    var newDate = new Date(dateLabel[i]);
+    var open = openPrices[i];
+    var low = lowPrices[i];
+    var high = highPrices[i];
+    var value = (high+low)/2
+
+    chartData.push({
+      date: newDate.getTime(),
+      value: value,
+      open: open,
+      low: low,
+      high: high
+    });
+  }
+  return chartData;
+}
+
+var data = generateChartData();
+
+// Create chart
+// https://www.amcharts.com/docs/v5/charts/xy-chart/
+var chart = root.container.children.push(
+  am5xy.XYChart.new(root, {
+    focusable: true,
+    panX: true,
+    panY: true,
+    wheelX: "panX",
+    wheelY: "zoomX"
+  })
+);
+
+// Create axes
+// https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+var xAxis = chart.xAxes.push(
+  am5xy.DateAxis.new(root, {
+    groupData: true,
+    maxDeviation:0.5,
+    baseInterval: { timeUnit: "day", count: 1 },
+    renderer: am5xy.AxisRendererX.new(root, {pan:"zoom"}),
+    tooltip: am5.Tooltip.new(root, {})
+  })
+);
+
+var yAxis = chart.yAxes.push(
+  am5xy.ValueAxis.new(root, {
+    maxDeviation:1,
+    renderer: am5xy.AxisRendererY.new(root, {pan:"zoom"})
+  })
+);
+
+var color = root.interfaceColors.get("background");
+
+// Add series
+// https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+var series = chart.series.push(
+  am5xy.CandlestickSeries.new(root, {
+    fill: color,
+    calculateAggregates: true,
+    stroke: color,
+    name: "MDXI",
+    xAxis: xAxis,
+    yAxis: yAxis,
+    valueYField: "value",
+    openValueYField: "open",
+    lowValueYField: "low",
+    highValueYField: "high",
+    valueXField: "date",
+    lowValueYGrouped: "low",
+    highValueYGrouped: "high",
+    openValueYGrouped: "open",
+    valueYGrouped: "close",
+    legendValueText:
+      "open: {openValueY} low: {lowValueY} high: {highValueY} close: {valueY}",
+    legendRangeValueText: "{valueYClose}",
+    tooltip: am5.Tooltip.new(root, {
+      pointerOrientation: "horizontal",
+      labelText: "open: {openValueY}\nlow: {lowValueY}\nhigh: {highValueY}\nclose: {valueY}"
+    })
+  })
+);
+
+// Add cursor
+// https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+var cursor = chart.set(
+  "cursor",
+  am5xy.XYCursor.new(root, {
+    xAxis: xAxis
+  })
+);
+cursor.lineY.set("visible", false);
+
+// Stack axes vertically
+// https://www.amcharts.com/docs/v5/charts/xy-chart/axes/#Stacked_axes
+chart.leftAxesContainer.set("layout", root.verticalLayout);
+
+// Add scrollbar
+// https://www.amcharts.com/docs/v5/charts/xy-chart/scrollbars/
+var scrollbar = am5xy.XYChartScrollbar.new(root, {
+  orientation: "horizontal",
+  height: 50
+});
+chart.set("scrollbarX", scrollbar);
+
+var sbxAxis = scrollbar.chart.xAxes.push(
+  am5xy.DateAxis.new(root, {
+    groupData: true,
+    groupIntervals: [{ timeUnit: "week", count: 1 }],
+    baseInterval: { timeUnit: "day", count: 1 },
+    renderer: am5xy.AxisRendererX.new(root, {
+      opposite: false,
+      strokeOpacity: 0
+    })
+  })
+);
+
+var sbyAxis = scrollbar.chart.yAxes.push(
+  am5xy.ValueAxis.new(root, {
+    renderer: am5xy.AxisRendererY.new(root, {})
+  })
+);
+
+var sbseries = scrollbar.chart.series.push(
+  am5xy.LineSeries.new(root, {
+    xAxis: sbxAxis,
+    yAxis: sbyAxis,
+    valueYField: "value",
+    valueXField: "date"
+  })
+);
+
+// Add legend
+// https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
+var legend = yAxis.axisHeader.children.push(am5.Legend.new(root, {}));
+
+legend.data.push(series);
+
+legend.markers.template.setAll({
+  width: 10
+});
+
+legend.markerRectangles.template.setAll({
+  cornerRadiusTR: 0,
+  cornerRadiusBR: 0,
+  cornerRadiusTL: 0,
+  cornerRadiusBL: 0
+});
+
+// set data
+series.data.setAll(data);
+sbseries.data.setAll(data);
+
+// Make stuff animate on load
+// https://www.amcharts.com/docs/v5/concepts/animations/
+series.appear(1000);
+chart.appear(1000, 100);
+
+});
+
+am5.ready(function() {
+var data = {{data |safe}};
+
+
+// Create root element
+// https://www.amcharts.com/docs/v5/getting-started/#Root_element
+var root = am5.Root.new("chartdiv2");
+
+// Set themes
+// https://www.amcharts.com/docs/v5/concepts/themes/
+root.setThemes([
+  am5themes_Animated.new(root)
+]);
+
+
+// Create chart
+// https://www.amcharts.com/docs/v5/charts/xy-chart/
+var chart = root.container.children.push(am5xy.XYChart.new(root, {
+  panX: false,
+  panY: false,
+  wheelY: "none"
+}));
+
+chart.zoomOutButton.set("forceHidden", true);
+
+chart.get("colors").set("step", 2);
+
+// Create axes
+// https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+var xAxis = chart.xAxes.push(am5xy.DateAxis.new(root, {
+  baseInterval: { timeUnit: "day", count: 1 },
+  renderer: am5xy.AxisRendererX.new(root, { minGridDistance: 50 }),
+  tooltip: am5.Tooltip.new(root, {})
+}));
+
+
+var distanceAxisRenderer = am5xy.AxisRendererY.new(root, {});
+distanceAxisRenderer.grid.template.set("forceHidden", true);
+var distanceAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+  renderer: distanceAxisRenderer,
+  tooltip: am5.Tooltip.new(root, {})
+}));
+
+var latitudeAxisRenderer = am5xy.AxisRendererY.new(root, {});
+latitudeAxisRenderer.grid.template.set("forceHidden", true);
+var latitudeAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+  renderer: latitudeAxisRenderer,
+  forceHidden: true
+}));
+
+
+// Create series
+// https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+var distanceSeries = chart.series.push(am5xy.ColumnSeries.new(root, {
+  xAxis: xAxis,
+  yAxis: distanceAxis,
+  valueYField: "twitter_count",
+  valueXField: "date",
+  tooltip:am5.Tooltip.new(root, {
+    labelText:"{valueY} miles"
+  })
+}));
+
+distanceSeries.data.processor = am5.DataProcessor.new(root, {
+  dateFields: ["date"],
+  dateFormat: "yyyy-MM-dd"
+});
+
+var latitudeSeries = chart.series.push(am5xy.LineSeries.new(root, {
+  xAxis: xAxis,
+  yAxis: latitudeAxis,
+  valueYField: "volatility",
+  valueXField: "date",
+  tooltip:am5.Tooltip.new(root, {
+    labelText:"volatility: {valueY}"
+  })
+}));
+
+latitudeSeries.strokes.template.setAll({ strokeWidth: 2 });
+
+// Add circle bullet
+// https://www.amcharts.com/docs/v5/charts/xy-chart/series/#Bullets
+latitudeSeries.bullets.push(function() {
+  var graphics = am5.Circle.new(root, {
+    strokeWidth: 2,
+    radius: 5,
+    stroke: latitudeSeries.get("stroke"),
+    fill: root.interfaceColors.get("background"),
+  });
+
+  graphics.adapters.add("radius", function(radius, target) {
+    return 3;
+  })
+
+  return am5.Bullet.new(root, {
+    sprite: graphics
+  });
+});
+
+
+// Add cursor
+// https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+chart.set("cursor", am5xy.XYCursor.new(root, {
+  xAxis: xAxis,
+  yAxis: distanceAxis
+}));
+
+
+distanceSeries.data.setAll(data);
+latitudeSeries.data.setAll(data);
+xAxis.data.setAll(data);
+
+// Make stuff animate on load
+// https://www.amcharts.com/docs/v5/concepts/animations/
+distanceSeries.appear(1000);
+chart.appear(1000, 100);
+
+}); // end am5.ready()
+
+
+
+</script>
+
+</html>
